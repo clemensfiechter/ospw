@@ -1,0 +1,154 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: sans-serif;
+  background-color: #b3b3b3;
+}
+#header {
+  width: 100%;
+  height: 50px;
+  padding: 15px;
+  background-color: #000;
+  color: #fff;
+  margin-bottom: 10vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+
+}
+#header h1 {
+  text-align: center;
+  /* width: 150px; */
+  margin: auto 20px;
+  /* margin-left: auto; */
+  font-size: 1.5em;
+  /* display: flex;
+  flex-direction: row;
+  justify-content: space-between; */
+
+}
+#header img {
+  width: 20px;
+  margin-right: 10px;
+}
+#unload {
+  /* position: absolute; */
+  /* left: 50px; */
+  color: #fff;
+  display: inline;
+  text-decoration: none;
+}
+#interface_area {
+  top: 50px;
+  position: absolute;
+  width: 100%;
+}
+.container {
+  width: 70vw;
+  margin-left: auto;
+  margin-right: auto;
+  height: 50vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.main_button {
+  width: 20%;
+  height: 60%;
+  /* padding-top: 2%; */
+  text-align: center;
+  background-color: #fff;
+  display: flex;
+}
+a.main {
+  background-color: #eee;
+  display: block;
+  width: 90%;
+  margin: auto;
+  height: 90%;
+  text-decoration: none;
+  color: #000;
+  padding-top: 10%;
+  font-size: 1.5em;
+}
+.container_misc {
+  width: 70vw;
+  margin-left: auto;
+  margin-right: auto;
+  height: 50vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+.misc_button {
+  width: 100%;
+  height: 40%;
+  /* padding-top: 2%; */
+  text-align: left;
+  background-color: #fff;
+  display: flex;
+}
+a.misc {
+  background-color: #eee;
+  display: block;
+  width: 90%;
+  margin: auto;
+  height: 90%;
+  text-decoration: none;
+  color: #000;
+  padding-top: 5%;
+  font-size: 1.5em;
+}
+
+#interfaceNavUl {
+  position: absolute;
+  width: 100%;
+  height: 50px;
+  top: 0;
+  background-color: #000;
+  list-style: none;
+  display: flex;
+}
+.nav-item {
+  /* float: left; */
+  margin-top: 15px;
+  margin-left: 20px;
+}
+.nav-link {
+  color: #fff;
+  text-decoration: none;
+
+}
+.tab-active {
+  color: #ababab;
+  border-bottom: #ababab solid 2px;
+
+}
+.tab-pane {
+  visibility: hidden;
+}
+.active {
+  visibility: visible;;
+}
+
+@media screen and (max-width: 1000px) {
+  #header {
+    margin-bottom: 0;
+  }
+  .container {
+    flex-direction: column;
+    height: 80vh;
+  }
+  .main_button {
+    width: 60%;
+    height: 25%;
+    margin: auto;
+  }
+  a {
+    /* padding-top: 10px; */
+  }
+}

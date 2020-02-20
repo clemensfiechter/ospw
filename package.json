@@ -1,0 +1,31 @@
+{
+  "name": "ospw",
+  "version": "1.0.0",
+  "description": "Open Signal Processing Workstation",
+  "main": "server.js",
+  "directories": {},
+  "dependencies": {
+    "connect": "^2.19.1",
+    "simplebuf": "^0.0.1",
+    "node-osc": "^0.2.1",
+    "socket.io": "^1.0.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clemofi/ospw.git"
+  },
+  "keywords": [
+    "ospw"
+  ],
+  "author": "clemofi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/clemofi/ospw/issues"
+  },
+  "homepage": "https://github.com/clemofi/ospw#readme"
+}

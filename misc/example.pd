@@ -1,0 +1,50 @@
+#N canvas 761 187 919 604 12;
+#X obj 44 61 oscparse;
+#X obj 44 40 netreceive -u -b 57120;
+#X obj 44 87 route list;
+#X obj 47 242 s speed;
+#X obj 260 241 s pitch;
+#X obj 44 119 route ospw;
+#X obj 46 174 route speed;
+#X obj 260 175 route pitch;
+#X obj 305 132 print;
+#X obj 54 342 r speed;
+#X obj 205 340 r pitch;
+#X obj 54 367 * 127;
+#X obj 57 394 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -262144
+-1 -1 0 1;
+#X obj 205 365 * 127;
+#X obj 208 393 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -262144
+-1 -1 0 1;
+#X obj 495 177 route start;
+#X obj 495 243 s start;
+#X obj 53 484 r start;
+#X obj 422 503 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X text 259 264 /ospw/2/0/hslider/pitch/0.5;
+#X text 45 264 /ospw/0/0/vslider/speed/0.5;
+#X text 493 266 /ospw/0/2/button/start/0.1;
+#X obj 53 515 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 684 175 route press;
+#X text 681 266 /ospw/1/1/toggle/press/0.1;
+#X obj 683 243 s press;
+#X obj 422 474 r press;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 2 0 5 0;
+#X connect 5 0 6 0;
+#X connect 5 0 7 0;
+#X connect 5 0 8 0;
+#X connect 5 0 15 0;
+#X connect 5 0 23 0;
+#X connect 6 0 3 0;
+#X connect 7 0 4 0;
+#X connect 9 0 11 0;
+#X connect 10 0 13 0;
+#X connect 11 0 12 0;
+#X connect 13 0 14 0;
+#X connect 15 0 16 0;
+#X connect 17 0 22 0;
+#X connect 23 0 25 0;
+#X connect 26 0 18 0;

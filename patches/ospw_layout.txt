@@ -1,0 +1,2 @@
+normal: /ospw/x/y/interface_type/name/default_value
+with channellayout: /ospw/channel_number/pos_in_channel/interface_type/name
