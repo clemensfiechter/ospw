@@ -11,7 +11,7 @@ var io = require('socket.io').listen(app);
 var osc = require('node-osc')
 var fs = require('fs')
 
-var mixerPatch = 'patches/mixer_channellayout.pd';
+var mixerPatch = 'patches/mixer/mixer_channellayout.pd';
 var pdPatchToParse = '';
 var selectedMiscPatch = '';
 
@@ -113,29 +113,62 @@ function parsePatch(patchIsMixer, socket) {
     }
 
     if (useChannels) {
-      // loop through all occurences of '/ospw ' in contents
-      for (var i = 0; i < ospwIndices.length; i++) {
+      // extract channel_count from comment
+      let channelCountIndex = contents.indexOf('channel_count');
+      channelCountIndex += 'channel_count '.length;
+      channelCountSubstrLength = contents.indexOf(';', channelCountIndex)-channelCountIndex;
+      var channelCount = parseInt(contents.substr(channelCountIndex, channelCountSubstrLength));
 
-        // extract substring from contents with only the part after '/ospw' until ';'
-        var indexAfterOmit = ospwIndices[i]+omit;
-        var substrLength = contents.indexOf(';', ospwIndices[i])-indexAfterOmit;
+      var i = 0;
+      var channelObjectIndices = [];
+      while (i != -1) {
+        i = contents.indexOf('channel_object', i+1);
+        if (i != -1) {
+          channelObjectIndices.push(i);
+        }
+      }
+
+      var details = [];
+
+      // loop through all occurences of 'channel_object' in contents
+      // for setting up the layout of each channel
+      for (var i = 0; i < channelObjectIndices.length; i++) {
+        omit = 'channel_object '.length;
+
+        // extract substring from contents with only the part after 'channel_object' until ';'
+        var indexAfterOmit = channelObjectIndices[i]+omit;
+        var substrLength = contents.indexOf(';', channelObjectIndices[i])-indexAfterOmit;
         var tempStr = contents.substr(indexAfterOmit, substrLength);
 
         // split string into array containing details of the interface to be generated
-        // form: [ 'channel_number', 'pos_in_channel', 'interface_type', 'name', 'init_value' ]
-        var details = tempStr.split('/');
+        // form: [ 'pos_in_channel', 'interface_type', 'name', 'init_value' ]
+        details[i] = tempStr.split(' ');
 
-        // details[0] = parseInt(details[0]);
+        details[i][0] = parseInt(details[i][0]);
+        details[i][3] = parseFloat(details[i][3]);
 
-        currentWidget = {};
-        currentWidget.channel_number = details[0];
-        currentWidget.pos_in_channel = details[1];
-        currentWidget.interface_type = details[2];
-        currentWidget.name = details[3];
-        currentWidget.init_value = details[4]
-        currentWidget.top = 0;
+        // currentWidget = {};
+        // currentWidget.channel_number = details[0];
+        // currentWidget.pos_in_channel = details[1];
+        // currentWidget.interface_type = details[2];
+        // currentWidget.name = details[3];
+        // currentWidget.init_value = details[4]
+        // currentWidget.top = 0;
 
-        ospwWidgets.push(currentWidget);
+        // ospwWidgets.push(currentWidget);
+      }
+      for (var i = 0; i < channelCount; i++) {
+        for (var j = 0; j < details.length; j++) {
+          currentWidget = {};
+          currentWidget.channel_number = i+1;
+          currentWidget.pos_in_channel = details[j][0];
+          currentWidget.interface_type = details[j][1];
+          currentWidget.name = details[j][2];
+          currentWidget.init_value = details[j][3]
+          currentWidget.top = 0;
+
+          ospwWidgets.push(currentWidget);
+        }
       }
     } else {
       for (var i = 0; i < ospwIndices.length; i++) {
@@ -209,6 +242,7 @@ function checkChannels() {
   }
   // TODO: check all the channels and make sorted array
   channelCount = Math.max.apply(Math, usedChannels);
+
 }
 
 function prepareInterfaceMixer() {
@@ -219,8 +253,8 @@ function prepareInterfaceMixer() {
   for (var i = 0; i < ospwWidgets.length; i++) {
     var osc_string;
     if (useChannels) {
-
-      osc_string = '/ospw/' + ospwWidgets[i].channel_number + '/' + ospwWidgets[i].pos_in_channel + '/' + ospwWidgets[i].interface_type + '/' + ospwWidgets[i].name  + '/' + ospwWidgets[i].init_value;
+      // prepare the osc string for the mixer interface elements in the style: /ospw/'ch'channel_number/'pos'pos_in_channel/name (e.g. /ospw/ch3/pos1/12k)
+      osc_string = '/ospw/ch' + ospwWidgets[i].channel_number + '/pos' + ospwWidgets[i].pos_in_channel;
 
       switch (ospwWidgets[i].interface_type) {
         case 'dial':
@@ -362,7 +396,6 @@ function prepareInterfaceMisc(socket) {
 
 // update the local variables for the generation of the interfaces of new clients
 function updateValueMixer(name, value) {
-  console.log(name);
   for (var i = 0; i < mixerWidgets.length; i++) {
     if (mixerWidgets[i].name === name) {
       mixerWidgets[i].value = value;
@@ -372,11 +405,8 @@ function updateValueMixer(name, value) {
 function updateValueBinaural(widgetIndex, pointIndex, angle, distance) {
     binauralWidgets[widgetIndex][pointIndex].angle = angle;
     binauralWidgets[widgetIndex][pointIndex].distance = distance;
-
-    console.log(binauralWidgets[widgetIndex][pointIndex]);
 }
 function updateValueMisc(name, value) {
-  console.log(name);
   for (var i = 0; i < miscWidgets.length; i++) {
     if (miscWidgets[i].name === name) {
       miscWidgets[i].value = value;
@@ -470,7 +500,6 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('nx_mixer', function(data)
   {
-    console.log(data);
     oscClient.send(data.oscName, data.value);
     updateValueMixer(data.oscName, data.value);
     socket.broadcast.emit('updateValueMixer', data.oscName, data.value);
@@ -490,7 +519,6 @@ io.sockets.on('connection', function (socket) {
   });
   socket.on('nx_misc', function(data)
   {
-    console.log(data);
     oscClient.send(data.oscName, data.value);
     updateValueMisc(data.oscName, data.value);
     socket.broadcast.emit('updateValueMixer', data.oscName, data.value);
