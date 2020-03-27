@@ -3,7 +3,7 @@
 // thanks to Ben Taylor for the NexusUI Library https://github.com/nexus-js/ui
 
 
-var httpListeningPort = 80;
+var httpListeningPort = 8888;
 var connect = require('connect')
 var http = require('http')
 var app = connect().use(connect.static(__dirname)).listen(httpListeningPort)
