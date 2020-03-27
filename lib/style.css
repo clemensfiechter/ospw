@@ -5,84 +5,165 @@
 }
 body {
   font-family: sans-serif;
-  background-color: #b3b3b3;
+  background-color: #c3c3c3;
 }
 #header {
-  width: 100%;
-  height: 50px;
+  min-height: 50px;
   padding: 15px;
   background-color: #000;
   color: #fff;
-  margin-bottom: 10vh;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-
+  /* width: 100%; */
+}
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* width: 100%; */
+  /* display: flex;
+  justify-content: flex-start; */
+}
+li {
+  float: left;
+  margin-right: 20px;
 }
 #header h1 {
-  text-align: center;
-  /* width: 150px; */
-  margin: auto 20px;
-  /* margin-left: auto; */
+  text-align: left;
   font-size: 1.5em;
-  /* display: flex;
-  flex-direction: row;
-  justify-content: space-between; */
-
 }
 #header img {
   width: 20px;
   margin-right: 10px;
 }
-#unload {
+#unload, #upload {
   /* position: absolute; */
   /* left: 50px; */
   color: #fff;
   display: inline;
   text-decoration: none;
 }
-#interface_area {
-  top: 50px;
+.inputfile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.inputfile + label {
+	cursor: pointer;
+}
+
+#upload_complete_message {
   position: absolute;
+  top: 5vh;
+  left: 50%;
+  transform: translate(-50%, 0);
+  padding: 20px;
+  border: 10px #fff solid;
+
+  color: #000;
+  background-color: #eee;
+
+  display: none;
+}
+
+#interface_area {
+  /* top: 50px; */
+  position: relative;
   width: 100%;
 }
 .container {
-  width: 70vw;
+  margin-top: 10vh;
+  width: 90vw;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 10vh;
   height: 50vh;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 .main_button {
-  width: 20%;
-  height: 60%;
-  /* padding-top: 2%; */
+  width: 20vw;
+  height: 20vw;
+
   text-align: center;
   background-color: #fff;
-  display: flex;
+  position: relative;
 }
 a.main {
-  background-color: #eee;
+  background-color: #cbcbcb;
   display: block;
+
   width: 90%;
-  margin: auto;
   height: 90%;
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
   text-decoration: none;
   color: #000;
-  padding-top: 10%;
+  /* padding-top: 40%; */
   font-size: 1.5em;
+}
+.menu_label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 .container_misc {
   width: 70vw;
-  margin-left: auto;
+  margin: 10vh auto;
   margin-right: auto;
-  height: 50vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+  min-height: 50vh;
+}
+#misc_table {
+  width: 100%;
+  border-collapse: separate;
+}
+td, th {
+  padding: 5px;
+  height: 15vh;
+  padding-left: 3%;
+  border: 5px solid #fff;
+}
+th {
+  /* border: 10px solid #fff; */
+  background-color: #cbcbcb;
+  /* background-color: #383838; */
+
+  font-weight: normal;
+
+  text-align: left;
+  font-size: 1.6rem;
+}
+td {
+    /* border-left: 1px solid #ECF0F1;
+    border-right: 1px solid #ECF0F1; */
+
+
+    background-color: #eee;
+    /* display: block; */
+    /* width: 90%; */
+    /* margin: auto; */
+    height: 15vh;
+    /* text-decoration: none; */
+    color: #000;
+    /* padding-top: 5%; */
+    /* font-size: 1.5em; */
+}
+td a {
+  color: #000;
+  text-decoration: none;
+  font-size: 1.5rem;
+}
+
+tr:nth-of-type(even) td{
+  background-color: lighten(#eee, 35%);
 }
 .misc_button {
   width: 100%;
@@ -93,15 +174,7 @@ a.main {
   display: flex;
 }
 a.misc {
-  background-color: #eee;
-  display: block;
-  width: 90%;
-  margin: auto;
-  height: 90%;
-  text-decoration: none;
-  color: #000;
-  padding-top: 5%;
-  font-size: 1.5em;
+
 }
 
 #interfaceNavUl {
@@ -113,6 +186,13 @@ a.misc {
   list-style: none;
   display: flex;
 }
+/* extra rule for binaural widget */
+/* #interfaceContentDiv {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  transform: translateX(-300px);
+} */
 .nav-item {
   /* float: left; */
   margin-top: 15px;
@@ -137,18 +217,31 @@ a.misc {
 
 @media screen and (max-width: 1000px) {
   #header {
-    margin-bottom: 0;
+
   }
   .container {
+    margin-top: 5vh;
     flex-direction: column;
-    height: 80vh;
+    height: 250vw;
+    /* justify-content: flex-start; */
+  }
+  .container_misc {
+    width: 90%;
+    margin-top: 5vh !important;
   }
   .main_button {
-    width: 60%;
-    height: 25%;
-    margin: auto;
+    /* margin-bottom: 10vh !important; */
+    width: 100%;
+    height: 60vw;
+    /* height: 20vh; */
+    /* margin: auto; */
   }
   a {
-    /* padding-top: 10px; */
+    /* padding-top: 10% !important; */
+  }
+}
+@media screen and (max-width: 600px) {
+  li {
+    float: none;
   }
 }

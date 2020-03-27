@@ -14,6 +14,7 @@ var fs = require('fs')
 var mixerPatch = 'patches/mixer/mixer_channellayout.pd';
 var pdPatchToParse = '';
 var selectedMiscPatch = '';
+var currentOpenMiscPatchIndex;
 
 var onMainPage = true;
 var patchLoaded = false;
@@ -66,9 +67,11 @@ var channelCount = 0;
 var binauralWidgetCount = 8;
 var listenersPerWidget = 8;
 var binauralWidgets = [];
+var currentActiveTabIndex = 0;
 
 // used for interface creation of user (misc) patches
 var miscWidgets = [];
+var miscWidgetInitialized = false;
 
 readMiscFolder(false);
 parsePatch(true);
@@ -79,9 +82,14 @@ function readMiscFolder(reload, socket) {
 
   fs.readdir(path, function(err, items) {
     miscPatches = items;
+    // filter out .DS_Store files (generated automatically on mac computers)
+    let dsIndex = miscPatches.indexOf('.DS_Store');
+    if (dsIndex != -1) {
+      miscPatches.splice(dsIndex, 1);
+    }
     if (reload) {
       socket.emit('createMiscMenu', miscPatches);
-      console.log("Created the start page!");
+      console.log("Created the misc. page!");
     }
   });
 }
@@ -99,7 +107,7 @@ function parsePatch(patchIsMixer, socket) {
     var i = 0;
     var ospwIndices = [];
     while (i != -1) {
-      i = contents.indexOf('/ospw', i+1)
+      i = contents.indexOf('/ospw', i+1);
       if (i != -1) {
         ospwIndices.push(i);
       }
@@ -146,16 +154,6 @@ function parsePatch(patchIsMixer, socket) {
 
         details[i][0] = parseInt(details[i][0]);
         details[i][3] = parseFloat(details[i][3]);
-
-        // currentWidget = {};
-        // currentWidget.channel_number = details[0];
-        // currentWidget.pos_in_channel = details[1];
-        // currentWidget.interface_type = details[2];
-        // currentWidget.name = details[3];
-        // currentWidget.init_value = details[4]
-        // currentWidget.top = 0;
-
-        // ospwWidgets.push(currentWidget);
       }
       for (var i = 0; i < channelCount; i++) {
         for (var j = 0; j < details.length; j++) {
@@ -337,11 +335,15 @@ function prepareInterfaceBinaural() {
 }
 
 function prepareInterfaceMisc(socket) {
+  let valueOfMiscWidgets = [];
+  if (miscWidgetInitialized) {
+    for (var i = 0; i < miscWidgets.length; i++) {
+      valueOfMiscWidgets[i] = miscWidgets[i].value;
+    }
+  }
   // clear old miscWidgets
   miscWidgets = [];
 
-  console.log('listing results of parsing');
-  console.log(ospwWidgets);
 
   for (var i = 0; i < ospwWidgets.length; i++) {
 
@@ -355,9 +357,7 @@ function prepareInterfaceMisc(socket) {
       'size': [defaultSize.width, defaultSize.height],
       'min': 0,
       'max': 1,
-      'value':  ospwWidgets[i].init_value,
-      // 'interaction': 'vertical',
-      // 'mode': 'relative',
+      'value':  (miscWidgetInitialized) ? valueOfMiscWidgets[i] : ospwWidgets[i].init_value,
       'label_x': ospwWidgets[i].x * cellSize,
       'label_y': ospwWidgets[i].y * cellSize,
       'label_text': ospwWidgets[i].name
@@ -386,12 +386,14 @@ function prepareInterfaceMisc(socket) {
     miscWidgets[i] = widget;
   }
 
-  console.log('listing miscWidgets');
-  console.log(miscWidgets);
+  if (!miscWidgetInitialized) {
+    miscWidgetInitialized = true;
+  }
 
+  // socket.emit('reload');
+  // socket.broadcast.emit('reload');
+  socket.emit('createMiscPatch', miscWidgets, selectedMiscPatch);
 
-  socket.emit('reload');
-  socket.broadcast.emit('reload');
 }
 
 // update the local variables for the generation of the interfaces of new clients
@@ -439,7 +441,7 @@ io.sockets.on('connection', function (socket) {
           socket.emit('createMixer', mixerWidgets, true, channelCount);
           break;
         case 1:
-          socket.emit('createBinaural', binauralWidgets, binauralWidgetCount, listenersPerWidget);
+          socket.emit('createBinaural', binauralWidgets, binauralWidgetCount, listenersPerWidget, currentActiveTabIndex);
           break;
         case 2:
           patchLoaded = false;
@@ -447,7 +449,9 @@ io.sockets.on('connection', function (socket) {
           console.log('now create reverb ... not implemented yet');
           break;
         case 3:
-          socket.emit('createMiscPatch', miscWidgets, selectedMiscPatch);
+          pdPatchToParse = 'misc/' + selectedMiscPatch;
+          parsePatch(false, socket); // patchIsMixer argument is false
+
           break;
       }
     }
@@ -468,29 +472,28 @@ io.sockets.on('connection', function (socket) {
     socket.broadcast.emit('reload');
   });
   socket.on('loadMiscPatch', function(pdMiscPatchIndex) {
-    // // if the patch is not the last one that was selected, the file gets parsed again
-    // if (miscPatches[pdMiscPatchIndex] != selectedMiscPatch) {
-      selectedMiscPatch = miscPatches[pdMiscPatchIndex];
-      console.log("custom patch to load: " + selectedMiscPatch);
+
+    if (currentOpenMiscPatchIndex != pdMiscPatchIndex) {
+      miscWidgetInitialized = false;
+    }
+    currentOpenMiscPatchIndex = pdMiscPatchIndex;
+
+    selectedMiscPatch = miscPatches[pdMiscPatchIndex];
+    console.log("custom patch to load: " + selectedMiscPatch);
 
 
-      patchLoaded = true;
-      loadedPatchIndex = 3; // misc patch index
+    patchLoaded = true;
+    loadedPatchIndex = 3; // misc patch index
 
-      pdPatchToParse = 'misc/' + selectedMiscPatch;
-      parsePatch(false, socket); // patchIsMixer argument is false
+    socket.emit('reload');
+    socket.broadcast.emit('reload');
 
-    // } else {
-    //   patchLoaded = true;
-    //   loadedPatchIndex = 3; // misc patch index
-    //
-    //   socket.emit('reload');
-    //   socket.broadcast.emit('reload');
-    // }
+    // pdPatchToParse = 'misc/' + selectedMiscPatch;
+    // parsePatch(false, socket); // patchIsMixer argument is false
 
   });
-  socket.on('unloadPatch', function() {
-    onMainPage = true;
+  socket.on('unloadPatch', function(toMainMenu) {
+    onMainPage = toMainMenu;
     patchLoaded = false;
 
     socket.emit('reload');
@@ -525,6 +528,23 @@ io.sockets.on('connection', function (socket) {
     console.log(data.oscName, data.value);
 
   });
+
+  socket.on('newFileUploaded', function(file)
+  {
+    writeUploadedFile(file, socket);
+  });
+  socket.on('bannerFadedOut', function(file)
+  {
+    socket.emit('reload');
+    socket.broadcast.emit('reload');
+  });
+  socket.on('notifyUpdateTabsBinaural', function(newActiveTabIndex)
+  {
+    currentActiveTabIndex = newActiveTabIndex;
+    socket.broadcast.emit('updateTabsBinaural', newActiveTabIndex);
+  });
+
+
 });
 
 oscServer.on('message', function(oscMsg, rinfo) {
@@ -553,3 +573,19 @@ oscServer.on('message', function(oscMsg, rinfo) {
     break;
   }
 });
+
+function writeUploadedFile(file, socket) {
+  let savePath = './misc/';
+
+  let correctedFileData = file.fileData.split(',')[1]
+
+  fs.writeFile(savePath + file.name, correctedFileData, 'base64', function (err) {
+    if (err) {
+      console.log(err);
+      return;
+    };
+
+    socket.emit('uploadSuccessful', file.name);
+  });
+
+}

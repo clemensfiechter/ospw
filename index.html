@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-	<title>Nexus UI</title>
+	<title>OSPW</title>
 
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
@@ -48,16 +48,16 @@ function createMainMenuPage() {
 	</div>\
 	<div class="container">\
 	<div class="main_button">\
-		<a class="main" href="#" onclick="loadPatch(0)">Mixer</a>\
+		<a class="main" href="#" onclick="loadPatch(0)"><p class="menu_label">Mixer</p></a>\
 	</div>\
 	<div class="main_button">\
-		<a class="main" href="#" onclick="loadPatch(1)">Binaural</a>\
+		<a class="main" href="#" onclick="loadPatch(1)"><p class="menu_label">Binaural</p></a>\
 	</div>\
 	<div class="main_button">\
-		<a class="main" href="#" onclick="loadPatch(2)">Reverb</a>\
+		<a class="main" href="#" onclick="loadPatch(2)"><p class="menu_label">Reverb</p></a>\
 	</div>\
 	<div class="main_button">\
-		<a class="main" href="#" onclick="loadMiscSite()">Misc</a>\
+		<a class="main" href="#" onclick="loadMiscSite()"><p class="menu_label">Misc.</p></a>\
 	</div>\
 	</div>');
 }
@@ -65,13 +65,29 @@ function createMainMenuPage() {
 function createMiscMenuPage(miscPatches) {
 
 	var htmlString_before = '<div id="header">\
-		<h1>Misc</h1>\
-		<h1>&bull;</h1>\
-		<h1><a href="#" onclick="unloadPatch()" id="unload"><img src="lib/back.png" alt="back">Back</a></h1>\
+		<ul>\
+		<li><h1 class="menu_item">Misc.</h1></li>\
+		<li>	<h1>&bull;</h1></li>\
+		<li>	<h1 class="menu_item"><a href="#" onclick="unloadPatch(true)" id="unload"><img src="lib/back.png" alt="back"><span>Back</span></a></h1></li>\
+		<li>	<h1>&bull;</h1></li>\
+		<li>	<h1 class="menu_item">\
+			<input type="file" accept=".pd"  id="uploadInput" class="inputfile" name="files[]">\
+			<label for="uploadInput"><img src="lib/upload.png" alt="upload">Upload Patch</label>\
+			</h1></li>\
+		</ul>\
 	</div>\
-	<div class="container_misc">';
+	<div id="upload_complete_message"></div>\
+	<div class="container_misc">\
+		<table id="misc_table" class="sortable">\
+			<thead>\
+				<th>Select Patch</th>\
+			</thead>\
+			<tbody>\
+		';
 
-	var htmlString_after = '</div>';
+	var htmlString_after = '</tbody>\
+		</table>\
+	</div>';
 
 	var htmlString = "";
 	htmlString += htmlString_before;
@@ -80,21 +96,28 @@ function createMiscMenuPage(miscPatches) {
 	for (var i = 0; i < miscPatches.length; i++) {
 		// buttonString[i] = ;
 
-		htmlString += '<div class="misc_button">\
-			<a class="misc" href="#" onclick="loadMiscPatch(' + i + ')">' + miscPatches[i] + '</a>\
-		</div>';
+//<div class="misc_button">
+
+		htmlString += '<tr>\
+			<td><a class="misc" href="#" onclick="loadMiscPatch(' + i + ')">' + miscPatches[i] + '</a></td>\
+		</tr>';
 	}
 
 	htmlString += htmlString_after;
 
 	$('body').append(htmlString);
+
+	document.getElementById('uploadInput').addEventListener('change', uploadCallback, false);
+
 }
 
 function createMixerPage() {
 	$('body').append('<div id="header">\
-		<h1>Mixer</h1>\
-		<h1>&bull;</h1>\
-		<h1><a href="#" onclick="unloadPatch()" id="unload"><img src="lib/back.png" alt="back">Back</a></h1>\
+	<ul>\
+		<li><h1>Mixer</h1></li>\
+		<li><h1>&bull;</h1></li>\
+		<li><h1><a href="#" onclick="unloadPatch(true)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
+	</ul>\
 	</div>\
 	<div id="interface_area">\
 	<div id="interface"></div>\
@@ -104,9 +127,11 @@ function createMixerPage() {
 
 function createBinauralPage() {
 	$('body').append('<div id="header">\
-		<h1>Binaural Interface</h1>\
-		<h1>&bull;</h1>\
-		<h1><a href="#" onclick="unloadPatch()" id="unload"><img src="lib/back.png" alt="back">Back</a></h1>\
+		<ul>\
+			<li><h1>Binaural Interface</h1></li>\
+			<li><h1>&bull;</h1></li>\
+			<li><h1><a href="#" onclick="unloadPatch(true)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
+		</ul>\
 	</div>\
 	<div id="interface_area">\
 	<ul class="nav nav-tabs" id="interfaceNavUl" role="tablist">\
@@ -123,9 +148,11 @@ function createBinauralPage() {
 
 function createMiscPatchPage(patchName) {
 	$('body').append('<div id="header">\
-		<h1>' + patchName + '</h1>\
-		<h1>&bull;</h1>\
-		<h1><a href="#" onclick="unloadPatch()" id="unload"><img src="lib/back.png" alt="back">Back</a></h1>\
+		<ul>\
+			<li><h1>' + patchName + '</h1></li>\
+			<li><h1>&bull;</h1></li>\
+			<li><h1><a href="#" onclick="unloadPatch(false)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
+		</ul>\
 	</div>\
 	<div id="interface_area">\
 	<div id="interface"></div>\
@@ -147,8 +174,8 @@ function loadMiscPatch(pdMiscPatchIndex) {
 	// tell server to parse and load the selected user patch
 	socket.emit('loadMiscPatch', pdMiscPatchIndex);
 }
-function unloadPatch() {
-	socket.emit('unloadPatch');
+function unloadPatch(toMainMenu) {
+	socket.emit('unloadPatch', toMainMenu);
 }
 
 // on connection to server
@@ -176,15 +203,20 @@ socket.on('connect', function()
 	});
 
 	// binaural interface creation and updating
-	socket.on('createBinaural', function(binauralWidgets, binauralWidgetCountArg, listenersPerWidgetArg) {
+	socket.on('createBinaural', function(binauralWidgets, binauralWidgetCountArg, listenersPerWidgetArg, currentActiveTabIndexArg) {
 		createBinauralPage();
 		binauralWidgetCount = binauralWidgetCountArg;
 		listenersPerWidget = listenersPerWidgetArg;
+		currentActiveTabIndex = currentActiveTabIndexArg;
 		createWidgetsBinaural(binauralWidgets);
 	});
 	socket.on('updateValueBinaural', function(name, value) {
 		updateValueBinaural(name, value);
 	});
+	socket.on('updateTabsBinaural', function(newActiveTabIndex) {
+		toggleTabs(newActiveTabIndex);
+	});
+
 
 	// misc interface creation and updating
 	socket.on('createMiscPatch', function(widgetSpecs, patchName) {
@@ -192,6 +224,9 @@ socket.on('connect', function()
 		createWidgetsMisc(widgetSpecs);
 	});
 
+	socket.on('uploadSuccessful', function(name) {
+		showSuccessBanner(name);
+	});
 
 	socket.on('reload', function() {
 		location.reload();
@@ -276,6 +311,12 @@ function createWidgetsMixer(w) {
 
 function createWidgetsBinaural(w)
 {
+
+	// set width of header
+	$('#header').css('min-width', 700);
+	$('#interfaceNavUl').css('min-width', 700);
+
+
 	for (let i = 0; i < binauralWidgetCount; i++) {
 
 		let newInterfaceDiv = document.createElement('div');
@@ -306,7 +347,7 @@ function createWidgetsBinaural(w)
 
 		let newListElement = document.createElement('li');
 		let newAnchorElement = document.createElement('a');
-		let newContent = document.createTextNode('Mix ' + (i+1));
+		let newContent = document.createTextNode('Mix-' + (i+1));
 
 		let currentNavId = navDivPrependString + i;
 
@@ -316,6 +357,7 @@ function createWidgetsBinaural(w)
 		newAnchorElement.href = '#';
 		newAnchorElement.onclick = function() {
 			toggleTabs(i);
+			socket.emit('notifyUpdateTabsBinaural', i);
 		};
 
 		newAnchorElement.appendChild(newContent);
@@ -368,6 +410,25 @@ function toggleTabs(newActiveTabIndex) {
 
 function createWidgetsMisc(w) {
 
+	// look for the biggest x coordinate (for menu bar width)
+	let allXs = [];
+	let widthToAdd;
+
+	for (var i = 0; i < w.length; i++) {
+		allXs[i] = w[i].x;
+	}
+	let maxX = Math.max(...allXs);
+
+	for (var i = 0; i < w.length; i++) {
+		if (maxX == w[i].x) {
+			widthToAdd = w[i].size[0];
+		}
+	}
+
+	// set width of header
+	$('#header').css('min-width', maxX + widthToAdd + 50);
+
+
 	for (var i = 0; i < w.length; i++) {
 
 		var numberName = w[i].name + 'Number';
@@ -394,6 +455,7 @@ function createWidgetsMisc(w) {
 			});
 			numbers[numberName].link(UI[w[i].name]);
 		} else if (w[i].type == 'toggle') {
+			w[i].state = w[i].value;
 			UI[w[i].name] = Nexus.Add.Toggle('#interface', w[i]);
 		}
 		var label = Nexus.Add.Label('#interface', {
@@ -428,9 +490,49 @@ function createWidgetsMisc(w) {
 	}
 }
 
+function uploadCallback(evt) {
+	var files = evt.target.files;
+
+	var fileToUpload = files[0];
+
+	var reader = new FileReader();
+
+	var senddata = new Object();
+
+	senddata.name = fileToUpload.name;
+	senddata.date = fileToUpload.lastModified;
+	senddata.size = fileToUpload.size;
+	senddata.type = fileToUpload.type;
+
+	reader.onload = function(readFileData) {
+  	senddata.fileData = readFileData.target.result; // Ergebnis vom FileReader auslesen
+
+		socket.emit('newFileUploaded', senddata);
+	}
+
+	reader.readAsDataURL(fileToUpload);
+}
+
+function showSuccessBanner(name) {
+
+	$('#upload_complete_message').html('Successfully uploaded "' + name + '"!');
+
+	$('#upload_complete_message').fadeToggle(50);
+
+	setTimeout(function() {
+		$('#upload_complete_message').fadeToggle(1000);
+		setTimeout(function() {
+			socket.emit('bannerFadedOut');
+		}, 1500);
+	}, 1500);
+
+
+}
+
 window.onload = function() {
 	socket.emit('renderInterface', 0); // send interface type (iPad, phone, computer etc.., screensize etc..)
 }
+
 </script>
 
 </html>
