@@ -146,6 +146,20 @@ function createBinauralPage() {
 
 }
 
+function createReverbPage() {
+	$('body').append('<div id="header">\
+		<ul>\
+			<li><h1>Reverb</h1></li>\
+			<li><h1>&bull;</h1></li>\
+			<li><h1><a href="#" onclick="unloadPatch(true)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
+		</ul>\
+	</div>\
+	<div id="interface_area">\
+	<div id="interface"></div>\
+	</div>');
+
+}
+
 function createMiscPatchPage(patchName) {
 	$('body').append('<div id="header">\
 		<ul>\
@@ -191,15 +205,15 @@ socket.on('connect', function()
 	});
 
 
-	// mixer creation and updating
-	socket.on('createMixer', function(widgetSpecs, channelsBool, channelCountArg) {
+	// mixer interface creation and updating
+	socket.on('createMixer', function(mixerWidgets, channelsBool, channelCountArg) {
 		useChannels = channelsBool;
 		channelCount = channelCountArg;
 		createMixerPage();
-		createWidgetsMixer(widgetSpecs);
+		createWidgetsMixer(mixerWidgets);
 	});
-	socket.on('updateValueMixer', function(name, value) {
-		updateValueMixer(name, value);
+	socket.on('updateValueBasic', function(name, value) {
+		updateValueBasic(name, value);
 	});
 
 	// binaural interface creation and updating
@@ -217,6 +231,11 @@ socket.on('connect', function()
 		toggleTabs(newActiveTabIndex);
 	});
 
+	// reverb interface creation and updating
+	socket.on('createReverb', function(reverbWidgets) {
+		createReverbPage();
+		createWidgetsReverb(reverbWidgets);
+	});
 
 	// misc interface creation and updating
 	socket.on('createMiscPatch', function(widgetSpecs, patchName) {
@@ -234,7 +253,7 @@ socket.on('connect', function()
 });
 
 
-function updateValueMixer(name, value)
+function updateValueBasic(name, value)
 {
 	for (var key in UI) {
 		if (key === name) {
@@ -408,18 +427,100 @@ function toggleTabs(newActiveTabIndex) {
 	currentActiveTabIndex = newActiveTabIndex;
 }
 
+function createWidgetsReverb(w) {
+
+	// look for the biggest x coordinate (for menu bar width)
+	let allXs = [];
+	let widthToAdd;
+
+	for (let i = 0; i < w.length; i++) {
+		allXs[i] = w[i].x;
+	}
+	let maxX = Math.max(...allXs);
+
+	for (let i = 0; i < w.length; i++) {
+		if (maxX == w[i].x) {
+			widthToAdd = w[i].size[0];
+		}
+	}
+
+	// set width of header
+	$('#header').css('min-width', maxX + widthToAdd + 50);
+
+
+	for (var i = 0; i < w.length; i++) {
+
+		var numberName = w[i].name + 'Number';
+		var numbers = {};
+		if (w[i].type == 'button') {
+			UI[w[i].name] = Nexus.Add.Button('#interface', w[i]);
+		} else if (w[i].type == 'dial') {
+			UI[w[i].name] = Nexus.Add.Dial('#interface', w[i]);
+			numbers[numberName] = Nexus.Add.Number('#interface', {
+				'x': w[i].x - 5,
+				'y': w[i].y + UI[w[i].name].height + 10
+			});
+			numbers[numberName].link(UI[w[i].name]);
+		} else if (w[i].type == 'number') {
+			UI[w[i].name] = Nexus.Add.Number('#interface', {
+				'x': w[i].x - 5,
+				'y': w[i].y + 15
+			});
+		} else if (w[i].type == 'slider') {
+			UI[w[i].name] = Nexus.Add.Slider('#interface', w[i]);
+			numbers[numberName] = Nexus.Add.Number('#interface', {
+				'x': w[i].x - 5,
+				'y': w[i].y + UI[w[i].name].height + 15
+			});
+			numbers[numberName].link(UI[w[i].name]);
+		} else if (w[i].type == 'toggle') {
+			w[i].state = w[i].value;
+			UI[w[i].name] = Nexus.Add.Toggle('#interface', w[i]);
+		}
+		var label = Nexus.Add.Label('#interface', {
+			'text': w[i].label_text.charAt(0).toUpperCase() + w[i].label_text.slice(1),
+			'x': w[i].label_x,
+			'y': w[i].label_y
+		});
+
+	}
+
+	// loop through the NexusUI components
+	for (var key in UI) {
+
+		// create a shorthand for your current component
+		var component = UI[key];
+
+		// attach a name to the component, taken from your UI object
+		// i.e. "frequency", "gain", or "filter"
+		component.name = key;
+
+		// tell the component to emit to your websocket when changed
+		component.on('change', function(value) {
+			// send the components name and its value to a websocket:
+			if (this.type == 'Button') {
+					socket.emit( "nx_reverb", { oscName: this.name, value: value.state ? 1 : 0} )
+			} else if (this.type == 'Toggle') {
+				socket.emit( "nx_reverb", { oscName: this.name, value: value ? 1 : 0 } )
+			} else {
+				socket.emit( "nx_reverb", { oscName: this.name, value: value} )
+			}
+		})
+	}
+}
+
 function createWidgetsMisc(w) {
 
 	// look for the biggest x coordinate (for menu bar width)
 	let allXs = [];
 	let widthToAdd;
 
-	for (var i = 0; i < w.length; i++) {
+	for (let i = 0; i < w.length; i++) {
 		allXs[i] = w[i].x;
 	}
 	let maxX = Math.max(...allXs);
 
-	for (var i = 0; i < w.length; i++) {
+	for (let i = 0; i < w.length; i++) {
 		if (maxX == w[i].x) {
 			widthToAdd = w[i].size[0];
 		}

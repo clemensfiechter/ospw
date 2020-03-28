@@ -7,11 +7,25 @@ var httpListeningPort = 8888;
 var connect = require('connect')
 var http = require('http')
 var app = connect().use(connect.static(__dirname)).listen(httpListeningPort)
+console.log(`http server on ${httpListeningPort}`);
 var io = require('socket.io').listen(app);
 var osc = require('node-osc')
 var fs = require('fs')
+const { spawn } = require("child_process");
+var pd; // variable for spawning pd
 
-var mixerPatch = 'patches/mixer/mixer_channellayout.pd';
+var oscClient = new osc.Client('localhost', 57120);
+console.log('osc client on 57120');
+
+var oscServer = new osc.Server(4445, '0.0.0.0');
+console.log('osc server on 4445');
+
+// pd patchfile paths
+var mixerPatchPath = `${__dirname}/patches/mixer/mixer_channellayout.pd`;
+var binauralPatchPath = `${__dirname}/patches/binaural/binaural.pd`;
+var reverbPatchPath = `${__dirname}/patches/reverb/reverb_singlethread.pd`;
+var miscFolderPath = `${__dirname}/misc/`;
+
 var pdPatchToParse = '';
 var selectedMiscPatch = '';
 var currentOpenMiscPatchIndex;
@@ -22,33 +36,10 @@ var loadedPatchIndex;
 
 var miscPatches = [];
 
-var oscClient = new osc.Client('localhost', 57120);
-console.log('osc client on 57120');
-
-var oscServer = new osc.Server(4445, '0.0.0.0');
-console.log('osc server on 4445');
-
-function removeWidget(socket, name) {
-  socket.emit('delete', name);
-}
-
-var ospwWidgets = [];
-
-// used for automatic channel layout
-var mixerWidgets = [];
-
-var useChannels = false;
-var channelWidth = 150;
-var cellSize = 150;
-var margin = 50;
-var marginTop = 50;
-var labelSpace = 50;
-
 var defaultSize = {
   'width': 50,
   'height': 50
 }
-
 var dialSize = {
   'width': 50,
   'height': 50
@@ -57,24 +48,36 @@ var sliderSize = {
   'width': 50,
   'height': 175
 }
-
 var sliderLength = 200;
-
 var numberBoxHeight = 30;
+
+var ospwWidgets = [];
+
+// used for mixer widget
+var mixerWidgets = [];
+var useChannels = false;
+var channelWidth = 150;
+var cellSize = 150;
+var margin = 50;
+var marginTop = 50;
+var labelSpace = 50;
 var channelCount = 0;
 
 // used for binaural widget
+var binauralWidgets = [];
 var binauralWidgetCount = 8;
 var listenersPerWidget = 8;
-var binauralWidgets = [];
 var currentActiveTabIndex = 0;
+
+// used for reverb widget
+var reverbWidgets = [];
 
 // used for interface creation of user (misc) patches
 var miscWidgets = [];
 var miscWidgetInitialized = false;
 
 readMiscFolder(false);
-parsePatch(true);
+parsePatch(true, 0); // parse mixer patch
 prepareInterfaceBinaural();
 
 function readMiscFolder(reload, socket) {
@@ -94,14 +97,21 @@ function readMiscFolder(reload, socket) {
   });
 }
 
-function parsePatch(patchIsMixer, socket) {
+function parsePatch(demoPatch, demoIndex, socket) {
   var omit = '/ospw/'.length;
 
   ospwWidgets = [];
 
-  if (patchIsMixer) {
-    pdPatchToParse = mixerPatch;
+  if (demoPatch) {
+    if (demoIndex == 0) {
+      // demo patch is mixer
+      pdPatchToParse = mixerPatchPath;
+    } else if (demoIndex == 1) {
+      // demo patch is reverb
+      pdPatchToParse = reverbPatchPath;
+    }
   }
+
 
   fs.readFile(pdPatchToParse, 'utf8', function(err, contents) {
     var i = 0;
@@ -195,8 +205,14 @@ function parsePatch(patchIsMixer, socket) {
       }
     }
 
-    if (patchIsMixer) {
-      prepareInterfaceMixer();
+    if (demoPatch) {
+      if (demoIndex == 0) {
+        // demo patch is mixer
+        prepareInterfaceMixer();
+      } else if (demoIndex == 1) {
+        // demo patch is reverb
+        prepareInterfaceReverb();
+      }
     } else {
       prepareInterfaceMisc(socket);
     }
@@ -317,6 +333,9 @@ function prepareInterfaceMixer() {
 
     mixerWidgets[i] = widget;
   }
+
+  // when done preparing the mixer patch, parse the reverb patch
+  parsePatch(true, 1);
 }
 
 function prepareInterfaceBinaural() {
@@ -331,6 +350,50 @@ function prepareInterfaceBinaural() {
       };
 		}
     binauralWidgets[i] = tempPointArray;
+  }
+}
+
+function prepareInterfaceReverb() {
+
+  for (var i = 0; i < ospwWidgets.length; i++) {
+
+    let osc_string = '/ospw/' + ospwWidgets[i].name;
+
+    var widget = {
+      'type': ospwWidgets[i].interface_type,
+      'name': osc_string,
+      'x': ospwWidgets[i].x * cellSize + margin,
+      'y': ospwWidgets[i].y * cellSize + margin,
+      'size': [defaultSize.width, defaultSize.height],
+      'min': 0,
+      'max': 1,
+      'value':  ospwWidgets[i].init_value,
+      'label_x': ospwWidgets[i].x * cellSize,
+      'label_y': ospwWidgets[i].y * cellSize,
+      'label_text': ospwWidgets[i].name
+    }
+
+    switch (ospwWidgets[i].interface_type) {
+      case 'button':
+        break;
+      case 'dial':
+        widget.interaction = 'vertical';
+        widget.mode= 'relative';
+        break;
+      case 'number':
+        break;
+      case 'hslider':
+        widget.type = 'slider';
+        widget.size = [sliderLength, defaultSize.height];
+        break;
+      case 'vslider':
+        widget.type = 'slider';
+        widget.size = [defaultSize.width, sliderLength];
+        break;
+      case 'toggle':
+        break;
+    }
+    reverbWidgets[i] = widget;
   }
 }
 
@@ -408,6 +471,13 @@ function updateValueBinaural(widgetIndex, pointIndex, angle, distance) {
     binauralWidgets[widgetIndex][pointIndex].angle = angle;
     binauralWidgets[widgetIndex][pointIndex].distance = distance;
 }
+function updateValueReverb(name, value) {
+  for (var i = 0; i < reverbWidgets.length; i++) {
+    if (reverbWidgets[i].name === name) {
+      reverbWidgets[i].value = value;
+    }
+  }
+}
 function updateValueMisc(name, value) {
   for (var i = 0; i < miscWidgets.length; i++) {
     if (miscWidgets[i].name === name) {
@@ -444,13 +514,11 @@ io.sockets.on('connection', function (socket) {
           socket.emit('createBinaural', binauralWidgets, binauralWidgetCount, listenersPerWidget, currentActiveTabIndex);
           break;
         case 2:
-          patchLoaded = false;
-          socket.emit('createMain');
-          console.log('now create reverb ... not implemented yet');
+          socket.emit('createReverb', reverbWidgets);
           break;
         case 3:
           pdPatchToParse = 'misc/' + selectedMiscPatch;
-          parsePatch(false, socket); // patchIsMixer argument is false
+          parsePatch(false, null, socket); // demoPatch argument is false
 
           break;
       }
@@ -460,6 +528,19 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('loadPatch', function(pdPatchIndex) {
     console.log("patch to load: " + pdPatchIndex);
+
+    switch (pdPatchIndex) {
+      case 0:
+        pd = spawn("pd", ["-open", mixerPatchPath]);
+        break;
+      case 1:
+        pd = spawn("pd", ["-open", binauralPatchPath]);
+        break;
+      case 2:
+        pd = spawn("pd", ["-open", reverbPatchPath]);
+        break;
+    }
+
     patchLoaded = true;
     loadedPatchIndex = pdPatchIndex;
 
@@ -481,6 +562,7 @@ io.sockets.on('connection', function (socket) {
     selectedMiscPatch = miscPatches[pdMiscPatchIndex];
     console.log("custom patch to load: " + selectedMiscPatch);
 
+    pd = spawn("pd", ["-open", miscFolderPath + selectedMiscPatch]);
 
     patchLoaded = true;
     loadedPatchIndex = 3; // misc patch index
@@ -488,12 +570,12 @@ io.sockets.on('connection', function (socket) {
     socket.emit('reload');
     socket.broadcast.emit('reload');
 
-    // pdPatchToParse = 'misc/' + selectedMiscPatch;
-    // parsePatch(false, socket); // patchIsMixer argument is false
-
   });
   socket.on('unloadPatch', function(toMainMenu) {
     onMainPage = toMainMenu;
+
+    pd.kill('SIGKILL');
+
     patchLoaded = false;
 
     socket.emit('reload');
@@ -505,7 +587,7 @@ io.sockets.on('connection', function (socket) {
   {
     oscClient.send(data.oscName, data.value);
     updateValueMixer(data.oscName, data.value);
-    socket.broadcast.emit('updateValueMixer', data.oscName, data.value);
+    socket.broadcast.emit('updateValueBasic', data.oscName, data.value);
     console.log(data.oscName, data.value);
   });
   socket.on('nx_binaural', function(data)
@@ -520,11 +602,18 @@ io.sockets.on('connection', function (socket) {
     socket.broadcast.emit('updateValueBinaural', data.oscName, data.value);
 
   });
+  socket.on('nx_reverb', function(data)
+  {
+    oscClient.send(data.oscName, data.value);
+    updateValueReverb(data.oscName, data.value);
+    socket.broadcast.emit('updateValueBasic', data.oscName, data.value);
+    console.log(data.oscName, data.value);
+  });
   socket.on('nx_misc', function(data)
   {
     oscClient.send(data.oscName, data.value);
     updateValueMisc(data.oscName, data.value);
-    socket.broadcast.emit('updateValueMixer', data.oscName, data.value);
+    socket.broadcast.emit('updateValueBasic', data.oscName, data.value);
     console.log(data.oscName, data.value);
 
   });
