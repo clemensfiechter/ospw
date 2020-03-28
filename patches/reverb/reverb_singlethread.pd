@@ -112,6 +112,9 @@
 #X text 661 331 /ospw/1/0/vslider/drywet2/0.5;
 #X text 517 506 /ospw/0/2/dial/vol1/0.5;
 #X text 697 506 /ospw/1/2/dial/vol2/0.5;
+#X msg 681 745 \; pd dsp \$1;
+#X msg 681 720 1;
+#X obj 681 696 loadbang;
 #X connect 0 0 33 0;
 #X connect 1 0 2 0;
 #X connect 2 0 34 0;
@@ -166,3 +169,5 @@
 #X connect 47 0 48 0;
 #X connect 49 0 50 0;
 #X connect 51 0 52 0;
+#X connect 57 0 56 0;
+#X connect 58 0 57 0;

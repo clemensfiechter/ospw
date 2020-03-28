@@ -68,7 +68,7 @@ function createMiscMenuPage(miscPatches) {
 		<ul>\
 		<li><h1 class="menu_item">Misc.</h1></li>\
 		<li>	<h1>&bull;</h1></li>\
-		<li>	<h1 class="menu_item"><a href="#" onclick="unloadPatch(true)" id="unload"><img src="lib/back.png" alt="back"><span>Back</span></a></h1></li>\
+		<li>	<h1 class="menu_item"><a href="#" onclick="unloadPatch(true, true)" id="unload"><img src="lib/back.png" alt="back"><span>Back</span></a></h1></li>\
 		<li>	<h1>&bull;</h1></li>\
 		<li>	<h1 class="menu_item">\
 			<input type="file" accept=".pd"  id="uploadInput" class="inputfile" name="files[]">\
@@ -116,7 +116,7 @@ function createMixerPage() {
 	<ul>\
 		<li><h1>Mixer</h1></li>\
 		<li><h1>&bull;</h1></li>\
-		<li><h1><a href="#" onclick="unloadPatch(true)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
+		<li><h1><a href="#" onclick="unloadPatch(true, false)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
 	</ul>\
 	</div>\
 	<div id="interface_area">\
@@ -130,7 +130,7 @@ function createBinauralPage() {
 		<ul>\
 			<li><h1>Binaural Interface</h1></li>\
 			<li><h1>&bull;</h1></li>\
-			<li><h1><a href="#" onclick="unloadPatch(true)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
+			<li><h1><a href="#" onclick="unloadPatch(true, false)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
 		</ul>\
 	</div>\
 	<div id="interface_area">\
@@ -151,7 +151,7 @@ function createReverbPage() {
 		<ul>\
 			<li><h1>Reverb</h1></li>\
 			<li><h1>&bull;</h1></li>\
-			<li><h1><a href="#" onclick="unloadPatch(true)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
+			<li><h1><a href="#" onclick="unloadPatch(true, false)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
 		</ul>\
 	</div>\
 	<div id="interface_area">\
@@ -165,7 +165,7 @@ function createMiscPatchPage(patchName) {
 		<ul>\
 			<li><h1>' + patchName + '</h1></li>\
 			<li><h1>&bull;</h1></li>\
-			<li><h1><a href="#" onclick="unloadPatch(false)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
+			<li><h1><a href="#" onclick="unloadPatch(false, false)" id="unload"><img src="lib/back.png" alt="back">Back</a></h1></li>\
 		</ul>\
 	</div>\
 	<div id="interface_area">\
@@ -188,8 +188,8 @@ function loadMiscPatch(pdMiscPatchIndex) {
 	// tell server to parse and load the selected user patch
 	socket.emit('loadMiscPatch', pdMiscPatchIndex);
 }
-function unloadPatch(toMainMenu) {
-	socket.emit('unloadPatch', toMainMenu);
+function unloadPatch(toMainMenu, fromMiscMenu) {
+	socket.emit('unloadPatch', toMainMenu, fromMiscMenu);
 }
 
 // on connection to server

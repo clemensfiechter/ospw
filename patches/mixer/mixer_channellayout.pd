@@ -1,4 +1,4 @@
-#N canvas 0 100 1315 750 10;
+#N canvas 0 85 1315 750 10;
 #X obj 48 42 adc~ 1;
 #X obj 185 37 adc~ 2;
 #X obj 328 36 adc~ 3;
@@ -436,6 +436,9 @@
 #X obj 1167 355 r ch16_pos2;
 #X obj 1126 405 r ch16_pos3;
 #X obj 1106 454 dac~ 16;
+#X msg 1102 656 \; pd dsp \$1;
+#X msg 1102 631 1;
+#X obj 1102 607 loadbang;
 #X connect 0 0 26 0;
 #X connect 1 0 27 0;
 #X connect 2 0 28 0;
@@ -552,3 +555,5 @@
 #X connect 143 0 98 2;
 #X connect 144 0 98 3;
 #X connect 145 0 97 1;
+#X connect 148 0 147 0;
+#X connect 149 0 148 0;

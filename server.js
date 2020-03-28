@@ -24,7 +24,7 @@ console.log('osc server on 4445');
 var mixerPatchPath = `${__dirname}/patches/mixer/mixer_channellayout.pd`;
 var binauralPatchPath = `${__dirname}/patches/binaural/binaural.pd`;
 var reverbPatchPath = `${__dirname}/patches/reverb/reverb_singlethread.pd`;
-var miscFolderPath = `${__dirname}/misc/`;
+var miscFolderPath = `${__dirname}/patches/misc/`;
 
 var pdPatchToParse = '';
 var selectedMiscPatch = '';
@@ -81,9 +81,8 @@ parsePatch(true, 0); // parse mixer patch
 prepareInterfaceBinaural();
 
 function readMiscFolder(reload, socket) {
-  path = './misc';
 
-  fs.readdir(path, function(err, items) {
+  fs.readdir(miscFolderPath, function(err, items) {
     miscPatches = items;
     // filter out .DS_Store files (generated automatically on mac computers)
     let dsIndex = miscPatches.indexOf('.DS_Store');
@@ -453,8 +452,7 @@ function prepareInterfaceMisc(socket) {
     miscWidgetInitialized = true;
   }
 
-  // socket.emit('reload');
-  // socket.broadcast.emit('reload');
+
   socket.emit('createMiscPatch', miscWidgets, selectedMiscPatch);
 
 }
@@ -517,7 +515,7 @@ io.sockets.on('connection', function (socket) {
           socket.emit('createReverb', reverbWidgets);
           break;
         case 3:
-          pdPatchToParse = 'misc/' + selectedMiscPatch;
+          pdPatchToParse = miscFolderPath + selectedMiscPatch;
           parsePatch(false, null, socket); // demoPatch argument is false
 
           break;
@@ -571,10 +569,12 @@ io.sockets.on('connection', function (socket) {
     socket.broadcast.emit('reload');
 
   });
-  socket.on('unloadPatch', function(toMainMenu) {
+  socket.on('unloadPatch', function(toMainMenu, fromMiscMenu) {
     onMainPage = toMainMenu;
 
-    pd.kill('SIGKILL');
+    if (!fromMiscMenu) {
+      pd.kill('SIGKILL');
+    }
 
     patchLoaded = false;
 
@@ -664,7 +664,7 @@ oscServer.on('message', function(oscMsg, rinfo) {
 });
 
 function writeUploadedFile(file, socket) {
-  let savePath = './misc/';
+  let savePath = miscFolderPath;
 
   let correctedFileData = file.fileData.split(',')[1]
 
