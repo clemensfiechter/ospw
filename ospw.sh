@@ -1,3 +1,3 @@
 #!/bin/bash
 
-node ~/ospw/server.js
+node server.js

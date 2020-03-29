@@ -431,6 +431,7 @@ function createWidgetsReverb(w) {
 
 	// look for the biggest x coordinate (for menu bar width)
 	let allXs = [];
+	let widthsOfMaxXElements = [];
 	let widthToAdd;
 
 	for (let i = 0; i < w.length; i++) {
@@ -440,8 +441,11 @@ function createWidgetsReverb(w) {
 
 	for (let i = 0; i < w.length; i++) {
 		if (maxX == w[i].x) {
-			widthToAdd = w[i].size[0];
+			widthsOfMaxXElements.push(w[i].size[0]);
 		}
+	}
+	if (widthsOfMaxXElements.length > 1) {
+		widthToAdd = Math.max(...widthsOfMaxXElements);
 	}
 
 	// set width of header

@@ -529,13 +529,13 @@ io.sockets.on('connection', function (socket) {
 
     switch (pdPatchIndex) {
       case 0:
-        pd = spawn("pd", ["-open", mixerPatchPath]);
+        pd = spawn("pd", ["-open", mixerPatchPath, "-nogui"]);
         break;
       case 1:
-        pd = spawn("pd", ["-open", binauralPatchPath]);
+        pd = spawn("pd", ["-open", binauralPatchPath, "-nogui"]);
         break;
       case 2:
-        pd = spawn("pd", ["-open", reverbPatchPath]);
+        pd = spawn("pd", ["-open", reverbPatchPath, "-nogui"]);
         break;
     }
 
@@ -560,7 +560,7 @@ io.sockets.on('connection', function (socket) {
     selectedMiscPatch = miscPatches[pdMiscPatchIndex];
     console.log("custom patch to load: " + selectedMiscPatch);
 
-    pd = spawn("pd", ["-open", miscFolderPath + selectedMiscPatch]);
+    pd = spawn("pd", ["-open", miscFolderPath + selectedMiscPatch, "-nogui"]);
 
     patchLoaded = true;
     loadedPatchIndex = 3; // misc patch index
