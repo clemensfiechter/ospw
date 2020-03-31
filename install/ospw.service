@@ -1,0 +1,12 @@
+[Unit]
+Description=OSPW
+StartLimitIntervalSec=0
+
+[Service]
+Restart=always
+RestartSec=1
+ExecStart=/home/REPLACE/ospw/ospw.sh
+User=REPLACE
+
+[Install]
+WantedBy=multi-user.target

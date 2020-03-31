@@ -74,7 +74,6 @@ var reverbWidgets = [];
 
 // used for interface creation of user (misc) patches
 var miscWidgets = [];
-var miscWidgetInitialized = false;
 
 readMiscFolder(false);
 parsePatch(true, 0); // parse mixer patch
@@ -397,15 +396,8 @@ function prepareInterfaceReverb() {
 }
 
 function prepareInterfaceMisc(socket) {
-  let valueOfMiscWidgets = [];
-  if (miscWidgetInitialized) {
-    for (var i = 0; i < miscWidgets.length; i++) {
-      valueOfMiscWidgets[i] = miscWidgets[i].value;
-    }
-  }
-  // clear old miscWidgets
-  miscWidgets = [];
 
+  miscWidgets = [];
 
   for (var i = 0; i < ospwWidgets.length; i++) {
 
@@ -419,7 +411,7 @@ function prepareInterfaceMisc(socket) {
       'size': [defaultSize.width, defaultSize.height],
       'min': 0,
       'max': 1,
-      'value':  (miscWidgetInitialized) ? valueOfMiscWidgets[i] : ospwWidgets[i].init_value,
+      'value': ospwWidgets[i].init_value,
       'label_x': ospwWidgets[i].x * cellSize,
       'label_y': ospwWidgets[i].y * cellSize,
       'label_text': ospwWidgets[i].name
@@ -446,10 +438,6 @@ function prepareInterfaceMisc(socket) {
         break;
     }
     miscWidgets[i] = widget;
-  }
-
-  if (!miscWidgetInitialized) {
-    miscWidgetInitialized = true;
   }
 
 
@@ -529,15 +517,23 @@ io.sockets.on('connection', function (socket) {
 
     switch (pdPatchIndex) {
       case 0:
-        pd = spawn("pd", ["-open", mixerPatchPath, "-nogui"]);
+        pd = spawn("pd", ["-open", mixerPatchPath, "-nogui", "-rt"]);
         break;
       case 1:
-        pd = spawn("pd", ["-open", binauralPatchPath, "-nogui"]);
+        pd = spawn("pd", ["-open", binauralPatchPath, "-nogui", "-rt"]);
         break;
       case 2:
-        pd = spawn("pd", ["-open", reverbPatchPath, "-nogui"]);
+        pd = spawn("pd", ["-open", reverbPatchPath, "-nogui", "-rt"]);
         break;
     }
+
+    pd.stdout.on('data', (data) => {
+      console.log(`pd stdout:\n${data}`);
+    });
+
+    pd.stderr.on('data', (data) => {
+      console.error(`pd stderr:\n${data}`);
+    });
 
     patchLoaded = true;
     loadedPatchIndex = pdPatchIndex;
@@ -552,15 +548,20 @@ io.sockets.on('connection', function (socket) {
   });
   socket.on('loadMiscPatch', function(pdMiscPatchIndex) {
 
-    if (currentOpenMiscPatchIndex != pdMiscPatchIndex) {
-      miscWidgetInitialized = false;
-    }
     currentOpenMiscPatchIndex = pdMiscPatchIndex;
 
     selectedMiscPatch = miscPatches[pdMiscPatchIndex];
     console.log("custom patch to load: " + selectedMiscPatch);
 
-    pd = spawn("pd", ["-open", miscFolderPath + selectedMiscPatch, "-nogui"]);
+    pd = spawn("pd", ["-open", miscFolderPath + selectedMiscPatch, "-nogui", "-rt"]);
+
+    pd.stdout.on('data', (data) => {
+      console.log(`pd stdout:\n${data}`);
+    });
+
+    pd.stderr.on('data', (data) => {
+      console.error(`pd stderr:\n${data}`);
+    });
 
     patchLoaded = true;
     loadedPatchIndex = 3; // misc patch index
