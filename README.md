@@ -20,7 +20,7 @@ The OSPW components in this repository should be installed on a freshly setup Li
 - `cd` into the created *ospw* directory
 - Install the Node.js dependencies: `npm install`
 - Install the *ui* submodule: `git submodule update --init --recursive`
-- In the file `ospw.sh` correct the path to match your location of the file.
+- In the file `ospw.sh` correct the path to match your location of the file
 
 For starting the OSPW on boot, different methods can be used, depending on the linux distribution. There is a systemd service file in the install folder, that has to be customized manually or with the `setup-service.js` script. After editing, this file has to be placed in one of the locations that are used by sytemd, for example `/etc/systemd/user`. There the permissions have to be set and the service can be enabled.
 
@@ -37,7 +37,7 @@ On some Linux distributions, PulseAudio can be a problem for Pd. For the OSPW to
 
 To start the OSPW Server, simply run the `ospw.sh` script or directly via node: `node server.js` from the main OSPW folder.
 
-From a client device, connect to the OSPW through a network connection and open the OSPW Web interface in a browser by entering its IP address or hostname and port 8888 (e.g. `ospw.local:8888`)
+From a client device, connect to the OSPW through a network connection and open the OSPW Web interface in a browser by entering its IP address or hostname and port 8888 (e.g. `ospw.local:8888`).
 
 There the demo applications can be tested. They consist of a 16 Channel Insert Mixer, a binaural renderer and a multichannel reverb.
 Additionally, custom Pd patches can be uploaded to and run by the OSPW.
@@ -49,6 +49,6 @@ The syntax for the string is */ospw/x/y/widgettype/parameterName/initValue*
 
 - The string has to start with *'/ospw'*
 - *x* and *y* are grid coordinates for placing the object within a symmetric grid
-- */widgettype* defines the generated interface object. Possible values are `button`, `toggle`, `number`, `dial`, `hslider`, `vslider`.
-- */parameterName* can be chosen freely and results in the rendered widget label.
-- */initValue* initializes the interface object with the entered value.
+- */widgettype* defines the generated interface object. Possible values are `button`, `toggle`, `number`, `dial`, `hslider`, `vslider`
+- */parameterName* can be chosen freely and results in the rendered widget label
+- */initValue* initializes the interface object with the entered value
