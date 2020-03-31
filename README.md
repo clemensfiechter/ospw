@@ -21,6 +21,7 @@ The OSPW components in this repository should be installed on a freshly setup Li
 - Install the Node.js dependencies: `npm install`
 - Install the *ui* submodule: `git submodule update --init --recursive`
 - In the file `ospw.sh` correct the path to match your location of the file
+- Make the file `ospw.sh` executable: `chmod a+x ospw.sh`
 
 For starting the OSPW on boot, different methods can be used, depending on the linux distribution. There is a systemd service file in the install folder, that has to be customized manually or with the `setup-service.js` script. After editing, this file has to be placed in one of the locations that are used by sytemd, for example `/etc/systemd/user`. There the permissions have to be set and the service can be enabled.
 
