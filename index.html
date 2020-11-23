@@ -14,7 +14,10 @@
 </head>
 
 <body>
-
+	<div id="interface-zoom-wrapper">
+		<p>Zoom</p>
+		<input type="range" min="1" max="100" value="50" id="interface-zoom">
+	</div>
 </body>
 
 <script>
@@ -39,7 +42,7 @@ var navDivPrependString = 'nav-item_';
 var currentActiveTabIndex = 0;
 var binauralWidgetCount;
 var listenersPerWidget;
-
+var zoomSlider;
 
 
 function createMainMenuPage() {
@@ -171,7 +174,6 @@ function createMiscPatchPage(patchName) {
 	<div id="interface_area">\
 	<div id="interface"></div>\
 	</div>');
-
 }
 
 function loadPatch(pdPatchIndex) {
@@ -326,10 +328,10 @@ function createWidgetsMixer(w) {
 			socket.emit( "nx_mixer", { oscName: this.name, value: value} )
 		})
 	}
-}
 
-function createWidgetsBinaural(w)
-{
+	document.getElementById('interface-zoom-wrapper').classList.add('show');
+}
+function createWidgetsBinaural(w) {
 
 	// set width of header
 	$('#header').css('min-width', 700);
@@ -408,8 +410,8 @@ function createWidgetsBinaural(w)
 			socket.emit( "nx_binaural", { oscName: this.name, value: value} )
 		})
 	}
-}
 
+}
 // needed for toggle menu on binaural page
 function toggleTabs(newActiveTabIndex) {
 	let currentActiveDiv = document.getElementById(interfaceDivPrependString + currentActiveTabIndex);
@@ -426,7 +428,6 @@ function toggleTabs(newActiveTabIndex) {
 
 	currentActiveTabIndex = newActiveTabIndex;
 }
-
 function createWidgetsReverb(w) {
 
 	// look for the biggest x coordinate (for menu bar width)
@@ -511,8 +512,9 @@ function createWidgetsReverb(w) {
 			}
 		})
 	}
-}
 
+	document.getElementById('interface-zoom-wrapper').classList.add('show');
+}
 function createWidgetsMisc(w) {
 
 	// look for the biggest x coordinate (for menu bar width)
@@ -593,6 +595,8 @@ function createWidgetsMisc(w) {
 			}
 		})
 	}
+
+	document.getElementById('interface-zoom-wrapper').classList.add('show');
 }
 
 function uploadCallback(evt) {
@@ -636,6 +640,16 @@ function showSuccessBanner(name) {
 
 window.onload = function() {
 	socket.emit('renderInterface', 0); // send interface type (iPad, phone, computer etc.., screensize etc..)
+	zoomSlider = document.getElementById('interface-zoom');
+	zoomSlider.value = 50;
+	zoomSlider.addEventListener('input', () => {
+		let value = parseInt(zoomSlider.value);
+		value += 50;
+		value *= 0.01;
+
+		const interfaceArea = document.getElementById('interface_area');
+		interfaceArea.style.transform = `scale(${value})`;
+	});
 }
 
 </script>

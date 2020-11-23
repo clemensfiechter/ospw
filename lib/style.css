@@ -12,18 +12,14 @@ body {
   padding: 15px;
   background-color: #000;
   color: #fff;
-  /* width: 100%; */
 }
 ul {
   margin: 0;
   padding: 0;
   list-style: none;
-  /* width: 100%; */
-  /* display: flex;
-  justify-content: flex-start; */
+  display: flex;
 }
 li {
-  float: left;
   margin-right: 20px;
 }
 #header h1 {
@@ -35,8 +31,6 @@ li {
   margin-right: 10px;
 }
 #unload, #upload {
-  /* position: absolute; */
-  /* left: 50px; */
   color: #fff;
   display: inline;
   text-decoration: none;
@@ -69,9 +63,69 @@ li {
 }
 
 #interface_area {
-  /* top: 50px; */
+  transform-origin: top left;
   position: relative;
   width: 100%;
+}
+#interface-zoom-wrapper {
+  position: fixed;
+  bottom: 0;
+  z-index: 999;
+
+  height: 40px;
+  width: 100vw;
+
+  background-color: black;
+  color: white;
+  padding: 5px 15px;
+
+  font-size: 12px;
+  line-height: 14px;
+
+  display: flex;
+  align-items: center;
+  visibility: hidden;
+}
+#interface-zoom-wrapper.show {
+  visibility: visible;
+}
+#interface-zoom {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  background: #eee;
+  outline: none;
+  border-radius: 5px;
+  margin-left: 10px;
+  max-width: 250px;
+  /* opacity: 0.7; */
+  /* -webkit-transition: .2s;
+  transition: opacity .2s; */
+}
+#interface-zoom:hover {
+  /* opacity: 1; */
+}
+
+#interface-zoom::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #2bb;
+  cursor: pointer;
+  outline: 0;
+  border: 0;
+  border-radius: 50%;
+}
+#interface-zoom::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #2bb;
+  cursor: pointer;
+  outline: 0;
+  border: 0;
+  border-radius: 50%;
 }
 .container {
   margin-top: 10vh;
@@ -240,8 +294,8 @@ a.misc {
     /* padding-top: 10% !important; */
   }
 }
-@media screen and (max-width: 600px) {
+/* @media screen and (max-width: 600px) {
   li {
     float: none;
   }
-}
+} */
