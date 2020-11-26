@@ -74,6 +74,7 @@ var reverbWidgets = [];
 
 // used for interface creation of user (misc) patches
 var miscWidgets = [];
+var miscWidgetInitialized = false;
 
 readMiscFolder(false);
 parsePatch(true, 0); // parse mixer patch
@@ -397,6 +398,14 @@ function prepareInterfaceReverb() {
 
 function prepareInterfaceMisc(socket) {
 
+  let valueOfMiscWidgets = [];
+
+  if (miscWidgetInitialized) {
+    for (var i = 0; i < miscWidgets.length; i++) {
+      valueOfMiscWidgets[i] = miscWidgets[i].value;
+    }
+  }
+  // clear old miscWidgets
   miscWidgets = [];
 
   for (var i = 0; i < ospwWidgets.length; i++) {
@@ -411,7 +420,7 @@ function prepareInterfaceMisc(socket) {
       'size': [defaultSize.width, defaultSize.height],
       'min': 0,
       'max': 1,
-      'value': ospwWidgets[i].init_value,
+      'value':  (miscWidgetInitialized) ? valueOfMiscWidgets[i] : ospwWidgets[i].init_value,
       'label_x': ospwWidgets[i].x * cellSize,
       'label_y': ospwWidgets[i].y * cellSize,
       'label_text': ospwWidgets[i].name
@@ -440,6 +449,9 @@ function prepareInterfaceMisc(socket) {
     miscWidgets[i] = widget;
   }
 
+  if (!miscWidgetInitialized) {
+    miscWidgetInitialized = true;
+  }
 
   socket.emit('createMiscPatch', miscWidgets, selectedMiscPatch);
 
@@ -547,6 +559,10 @@ io.sockets.on('connection', function (socket) {
     socket.broadcast.emit('reload');
   });
   socket.on('loadMiscPatch', function(pdMiscPatchIndex) {
+
+    if (currentOpenMiscPatchIndex != pdMiscPatchIndex) {
+      miscWidgetInitialized = false;
+    }
 
     currentOpenMiscPatchIndex = pdMiscPatchIndex;
 
