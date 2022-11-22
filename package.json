@@ -8,7 +8,7 @@
     "connect": "^2.19.1",
     "simplebuf": "^0.0.1",
     "node-osc": "^0.2.1",
-    "socket.io": "^1.0.6"
+    "socket.io": "^4.5.3"
   },
   "devDependencies": {},
   "scripts": {
